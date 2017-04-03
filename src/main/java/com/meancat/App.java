@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 import org.skife.jdbi.v2.DBI;
+import org.skife.jdbi.v2.Handle;
 
 public class App {
     public static void main(String[] args) throws SQLException {
@@ -27,6 +28,17 @@ public class App {
         // replace db, user and pass with real values
         DBI dbi = new DBI("jdbc:postgresql://localhost:5432/" + dbname, user, pass);
 
+
+        // this uses the fluent API of JDBI:
+
+        Handle h = dbi.open();
+        // throws UnableToExecuteStatementException:
+        h.execute("insert into uuidsample(id, other_id, name, namespace) values (:id, :other_id, :name, :namespace) on conflict do nothing",
+                UUID.randomUUID(), 1L, "fluent", "fl");
+        h.close();
+
+
+        // this uses the SQL Object API of JDBI:
         SampleDao dao = dbi.open(SampleDao.class);
 
 
