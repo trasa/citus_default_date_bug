@@ -1,0 +1,22 @@
+.idea/
+*.iml
+vcs.xml
+target/
+# intellij project files
+workspace.xml
+**/*/tasks.xml
+*.iws
+*.class
+surefire-reports
+*.swp
+*.suo
+obj/
+bin/
+# resharper
+_ReSharper.*
+~$*.xlsx
+~$*.docx
+~*.tmp
+*.pyc
+**/dependency-reduced-pom.xml
+.DS_Store
