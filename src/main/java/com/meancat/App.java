@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.UUID;
 
 import org.skife.jdbi.v2.DBI;
@@ -33,11 +34,17 @@ public class App {
         // replace db, user and pass with real values
         dbi = new DBI("jdbc:postgresql://localhost:5432/" + dbname, user, pass);
 
+        // exception
 //        updateUsingFluentJDBI();
 
+        // exception
 //        updateUsingSqlObjectJDBI();
 
-        updateUsingJDBCPreparedStatement();
+        // exception
+//        updateUsingJDBCPreparedStatement();
+
+        // this one works (but uses strcat for sql, which is ...problematic...)
+        updateUsingJDBCStatement();
     }
 
 
@@ -102,6 +109,18 @@ Caused by: org.postgresql.util.PSQLException: ERROR: no value found for paramete
 
         // Exception in thread "main" org.postgresql.util.PSQLException: ERROR: no value found for parameter 3
         stmt.executeUpdate();
+        stmt.close();
+        h.close();
+    }
+
+    private static void updateUsingJDBCStatement() throws SQLException {
+        Handle h = dbi.open();
+        Connection conn = h.getConnection();
+        Statement stmt = conn.createStatement();
+        // this one works!
+        stmt.executeUpdate(
+                String.format("insert into uuidsample(id, other_id, name, namespace) values ('%s',  1, 'jdbc statement', 'js') on conflict do nothing",
+                        UUID.randomUUID()));
         stmt.close();
         h.close();
     }
