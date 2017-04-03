@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Date;
 import java.util.UUID;
 
 import org.skife.jdbi.v2.DBI;
@@ -35,16 +36,19 @@ public class App {
         dbi = new DBI("jdbc:postgresql://localhost:5432/" + dbname, user, pass);
 
         // exception
-//        updateUsingFluentJDBI();
+        updateUsingFluentJDBI();
 
         // exception
 //        updateUsingSqlObjectJDBI();
+
+        // this one works (you supply all parameters including create_date)
+//        updateUsingSqlObjectJDBIFixedDates();
 
         // exception
 //        updateUsingJDBCPreparedStatement();
 
         // this one works (but uses strcat for sql, which is ...problematic...)
-        updateUsingJDBCStatement();
+//        updateUsingJDBCStatement();
     }
 
 
@@ -90,13 +94,23 @@ Caused by: org.postgresql.util.PSQLException: ERROR: no value found for paramete
          */
 
         UUID u = UUID.randomUUID();
-        dao.createUUID(u, 1L, "asdf", "ns" );
+        dao.createUUID(u, 1L, "asdf", "ns");
         System.out.println("created " + u);
         String name = dao.getUUID(u, 1L);
         System.out.println(name);
         dbi.close(dao);
     }
 
+    private static void updateUsingSqlObjectJDBIFixedDates() {
+        SampleDao dao = dbi.open(SampleDao.class);
+
+        UUID u = UUID.randomUUID();
+        dao.createUUIDWithDate(u, 1L, "asdf", "ns", new Date(System.currentTimeMillis()));
+        System.out.println("created " + u);
+        String name = dao.getUUID(u, 1L);
+        System.out.println(name);
+        dbi.close(dao);
+    }
 
     private static void updateUsingJDBCPreparedStatement() throws SQLException {
         Handle h = dbi.open();
