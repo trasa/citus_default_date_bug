@@ -1,6 +1,8 @@
 package com.meancat;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.UUID;
 
@@ -8,6 +10,9 @@ import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 
 public class App {
+
+    static DBI dbi;
+
     public static void main(String[] args) throws SQLException {
         String user;
         String pass;
@@ -26,22 +31,31 @@ public class App {
         DriverManager.registerDriver(new org.postgresql.Driver());
 
         // replace db, user and pass with real values
-        DBI dbi = new DBI("jdbc:postgresql://localhost:5432/" + dbname, user, pass);
+        dbi = new DBI("jdbc:postgresql://localhost:5432/" + dbname, user, pass);
+
+//        updateUsingFluentJDBI();
+
+//        updateUsingSqlObjectJDBI();
+
+        updateUsingJDBCPreparedStatement();
+    }
 
 
+    private static void updateUsingFluentJDBI() {
         // this uses the fluent API of JDBI:
-
         Handle h = dbi.open();
         // throws UnableToExecuteStatementException:
         h.execute("insert into uuidsample(id, other_id, name, namespace) values (:id, :other_id, :name, :namespace) on conflict do nothing",
                 UUID.randomUUID(), 1L, "fluent", "fl");
         h.close();
+    }
 
+
+
+    private static void updateUsingSqlObjectJDBI() {
 
         // this uses the SQL Object API of JDBI:
         SampleDao dao = dbi.open(SampleDao.class);
-
-
         /*
         Exception in thread "main" org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException: org.postgresql.util.PSQLException: ERROR: no value found for parameter 3 [statement:"insert into uuidsample(id, other_id, name, namespace) values (:id, :other_id, :name, :namespace) on conflict do nothing", located:"insert into uuidsample(id, other_id, name, namespace) values (:id, :other_id, :name, :namespace) on conflict do nothing", rewritten:"insert into uuidsample(id, other_id, name, namespace) values (?, ?, ?, ?) on conflict do nothing", arguments:{ positional:{}, named:{name:'asdf',namespace:'ns',id:ebd9882d-dcff-48a2-8424-3790d463616b,other_id:1}, finder:[]}]
 	at org.skife.jdbi.v2.SQLStatement.internalExecute(SQLStatement.java:1338)
@@ -66,7 +80,6 @@ Caused by: org.postgresql.util.PSQLException: ERROR: no value found for paramete
 	at org.postgresql.jdbc.PgPreparedStatement.execute(PgPreparedStatement.java:155)
 	at org.skife.jdbi.v2.SQLStatement.internalExecute(SQLStatement.java:1327)
 	... 12 more
-
          */
 
         UUID u = UUID.randomUUID();
@@ -74,7 +87,22 @@ Caused by: org.postgresql.util.PSQLException: ERROR: no value found for paramete
         System.out.println("created " + u);
         String name = dao.getUUID(u, 1L);
         System.out.println(name);
-
         dbi.close(dao);
+    }
+
+
+    private static void updateUsingJDBCPreparedStatement() throws SQLException {
+        Handle h = dbi.open();
+        Connection conn = h.getConnection();
+        PreparedStatement stmt = conn.prepareStatement("insert into uuidsample(id, other_id, name, namespace) values (?, ?, ?, ?) on conflict do nothing");
+        stmt.setObject(1, UUID.randomUUID());
+        stmt.setLong(2, 1L);
+        stmt.setString(3, "jdbc_prep_stmt");
+        stmt.setString(4, "j");
+
+        // Exception in thread "main" org.postgresql.util.PSQLException: ERROR: no value found for parameter 3
+        stmt.executeUpdate();
+        stmt.close();
+        h.close();
     }
 }
