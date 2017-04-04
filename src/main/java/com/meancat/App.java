@@ -36,13 +36,13 @@ public class App {
         dbi = new DBI("jdbc:postgresql://localhost:5432/" + dbname, user, pass);
 
         // exception
-        updateUsingFluentJDBI();
+//        updateUsingFluentJDBI();
 
         // exception
 //        updateUsingSqlObjectJDBI();
 
         // this one works (you supply all parameters including create_date)
-//        updateUsingSqlObjectJDBIFixedDates();
+        updateUsingSqlObjectJDBIFixedDates();
 
         // exception
 //        updateUsingJDBCPreparedStatement();
