@@ -1,5 +1,6 @@
 # citus_default_date_bug
 demonstrates bug(?) with Citus Sharded Postgres and a default date column 
+See https://github.com/citusdata/citus/issues/1304
 
 Given code like this:
 
